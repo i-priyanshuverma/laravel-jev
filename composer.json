@@ -10,7 +10,13 @@
         "filtering",
         "validation"
     ],
+    "homepage": "https://github.com/i-priyanshuverma/laravel-jev",
+    "support": {
+        "issues": "https://github.com/i-priyanshuverma/laravel-jev/issues",
+        "source": "https://github.com/i-priyanshuverma/laravel-jev"
+    },
     "license": "MIT",
+    "type": "library",
     "authors": [
         {
             "name": "i-priyanshuverma",
@@ -21,7 +27,9 @@
     "require": {
         "php": "^8.2",
         "illuminate/support": "^10.0|^11.0|^12.0|^13.0",
-        "illuminate/http": "^10.0|^11.0|^12.0|^13.0"
+        "illuminate/http": "^10.0|^11.0|^12.0|^13.0",
+        "illuminate/contracts": "^10.0|^11.0|^12.0|^13.0",
+        "illuminate/validation": "^10.0|^11.0|^12.0|^13.0"
     },
     "require-dev": {
         "orchestra/testbench": "^8.0|^9.0|^10.0",
