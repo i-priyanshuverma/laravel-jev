@@ -1,13 +1,10 @@
 # Laravel Jev
 
-[![PHP Version](https://img.shields.io/badge/php-%5E8.2-777bb4.svg?style=flat-square)](https://php.net)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE)
-
-<!-- Badges to enable once repository is pushed and published to Packagist:
 [![Run Tests](https://github.com/i-priyanshuverma/laravel-jev/actions/workflows/run-tests.yml/badge.svg)](https://github.com/i-priyanshuverma/laravel-jev/actions)
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/i-priyanshuverma/laravel-jev.svg?style=flat-square)](https://packagist.org/packages/i-priyanshuverma/laravel-jev)
 [![Total Downloads](https://img.shields.io/packagist/dt/i-priyanshuverma/laravel-jev.svg?style=flat-square)](https://packagist.org/packages/i-priyanshuverma/laravel-jev)
--->
+[![PHP Version](https://img.shields.io/badge/php-%5E8.2-777bb4.svg?style=flat-square)](https://php.net)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE)
 
 Laravel Jev provides an expressive, fluent API for fast semantic classification and decision-making in Laravel applications.
 
