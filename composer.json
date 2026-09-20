@@ -1,0 +1,59 @@
+{
+    "name": "i-priyanshuverma/laravel-jev",
+    "description": "Fast semantic classification and decision engine for Laravel.",
+    "keywords": [
+        "laravel",
+        "jev",
+        "typesafe",
+        "classification",
+        "decision-engine",
+        "filtering",
+        "validation"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "i-priyanshuverma",
+            "email": "i.priyanshuverma@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "illuminate/support": "^10.0|^11.0|^12.0|^13.0",
+        "illuminate/http": "^10.0|^11.0|^12.0|^13.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^8.0|^9.0|^10.0",
+        "phpunit/phpunit": "^10.5|^11.0",
+        "guzzlehttp/guzzle": "^7.8"
+    },
+    "autoload": {
+        "psr-4": {
+            "Priyanshu\\LaravelJev\\": "src/"
+        },
+        "files": [
+            "src/helpers.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Priyanshu\\LaravelJev\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Priyanshu\\LaravelJev\\JevServiceProvider"
+            ],
+            "aliases": {
+                "Jev": "Priyanshu\\LaravelJev\\Facades\\Jev"
+            }
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
