@@ -19,6 +19,12 @@ Whether you need to triage incoming webhooks, filter user submissions, route cus
 
 ---
 
+## Demo Application
+
+Looking for a working reference? Check out the [Laravel Jev Demo](https://github.com/i-priyanshuverma/laravel-jev-demo) repository for real-world examples including webhook triage, spam filtering, and ticket routing.
+
+---
+
 ## Requirements
 
 - PHP 8.2 or higher
@@ -130,6 +136,30 @@ $results = jev($input)
     ->is('is_urgent')
     ->choose('category', ['bug', 'feature_request', 'billing'])
     ->run();
+```
+
+### Dependency Injection via Contract
+
+Prefer constructor injection over facades? Type-hint the `Priyanshu\LaravelJev\Contracts\Jev` interface:
+
+```php
+namespace App\Services;
+
+use Priyanshu\LaravelJev\Contracts\Jev;
+
+class WebhookProcessor
+{
+    public function __construct(
+        protected Jev $jev
+    ) {}
+
+    public function handle(string $payload): void
+    {
+        if ($this->jev->isNot($payload, 'actionable event')) {
+            return;
+        }
+    }
+}
 ```
 
 ---
@@ -278,6 +308,35 @@ JEV_CACHE_TTL=86400
 ```
 
 When enabled, matching requests are retrieved directly from your configured cache store without outbound API calls.
+
+---
+
+## Events & Observability
+
+Every evaluation automatically dispatches a `DecisionEvaluated` event containing the input, criteria, decision result, and latency. You can listen to this event in your `AppServiceProvider` or EventServiceProvider for telemetry, audit logging, or dashboard metrics:
+
+```php
+namespace App\Providers;
+
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\ServiceProvider;
+use Priyanshu\LaravelJev\Events\DecisionEvaluated;
+
+class AppServiceProvider extends ServiceProvider
+{
+    public function boot(): void
+    {
+        Event::listen(function (DecisionEvaluated $event) {
+            logger()->info("Jev decision evaluated", [
+                'criteria'   => $event->criteriaOrType,
+                'passes'     => $event->decision->isTrue(),
+                'confidence' => $event->decision->confidence(),
+                'latency'    => "{$event->latencyMs}ms",
+            ]);
+        });
+    }
+}
+```
 
 ---
 
