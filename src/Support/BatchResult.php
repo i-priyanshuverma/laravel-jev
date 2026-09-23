@@ -62,51 +62,7 @@ class BatchResult
      */
     public function decision(string $name): JevDecision
     {
-        $raw = $this->rawResult->get($name);
-        $type = (string) ($raw['type'] ?? (isset($raw['choice']) ? 'choice' : (isset($raw['score']) ? 'score' : 'noul')));
-
-        if ($type === 'noul' || isset($raw['noul']) || isset($raw['probability'])) {
-            $noul = $this->rawResult->noul($name);
-            return new JevDecision(
-                value: $noul['isTrue'],
-                confidence: $noul['confidence'],
-                type: 'noul',
-                probabilities: ['true' => $noul['probability'], 'false' => 1.0 - $noul['probability']],
-                latencyMs: $this->latencyMs,
-                raw: $raw
-            );
-        }
-
-        if ($type === 'choice' || isset($raw['choice'])) {
-            $choice = $this->rawResult->choice($name);
-            return new JevDecision(
-                value: $choice['choice'],
-                confidence: $choice['confidence'],
-                type: 'choice',
-                probabilities: $choice['probabilities'],
-                latencyMs: $this->latencyMs,
-                raw: $raw
-            );
-        }
-
-        if ($type === 'score' || isset($raw['score'])) {
-            $score = $this->rawResult->score($name);
-            return new JevDecision(
-                value: $score['score'],
-                confidence: $score['confidence'],
-                type: 'score',
-                latencyMs: $this->latencyMs,
-                raw: $raw
-            );
-        }
-
-        return new JevDecision(
-            value: $raw['value'] ?? null,
-            confidence: (float) ($raw['confidence'] ?? 1.0),
-            type: $type,
-            latencyMs: $this->latencyMs,
-            raw: $raw
-        );
+        return JevDecision::fromAnswer($this->rawResult->get($name), $this->latencyMs);
     }
 
     public function raw(): JevResult
