@@ -6,11 +6,12 @@ namespace Priyanshu\LaravelJev\Client;
 
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
+use Priyanshu\LaravelJev\Contracts\ClientInterface;
 use Priyanshu\LaravelJev\Exceptions\JevApiException;
 use Priyanshu\LaravelJev\Support\JevResult;
 use Priyanshu\LaravelJev\Support\Question;
 
-class JevClient
+class JevClient implements ClientInterface
 {
     public function __construct(
         protected string $apiKey,
