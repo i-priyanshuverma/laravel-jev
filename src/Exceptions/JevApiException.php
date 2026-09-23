@@ -6,7 +6,7 @@ namespace Priyanshu\LaravelJev\Exceptions;
 
 use Exception;
 
-class JevApiException extends Exception
+class JevApiException extends Exception implements JevException
 {
     public function __construct(
         string $message,
