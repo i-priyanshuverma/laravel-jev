@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Cache;
 use Priyanshu\LaravelJev\Client\JevClient;
 use Priyanshu\LaravelJev\Contracts\ClientInterface;
 use Priyanshu\LaravelJev\Contracts\Jev as JevContract;
+use Priyanshu\LaravelJev\Events\DecisionEvaluated;
 use Priyanshu\LaravelJev\Support\BatchAnalysis;
 use Priyanshu\LaravelJev\Support\BatchResult;
 use Priyanshu\LaravelJev\Support\JevDecision;
@@ -123,13 +124,17 @@ class JevManager implements JevContract
 
         $cacheKey = $this->cacheKey('eval', $input, $criteria);
 
-        return $this->remember($cacheKey, function () use ($input, $criteria) {
+        $decision = $this->remember($cacheKey, function () use ($input, $criteria) {
             $result = $this->getClient()->ask($input, [
                 'noul' => Question::noul("Is this {$criteria}?"),
             ]);
 
             return JevDecision::fromAnswer($result->get('noul'), $result->latencyMs);
         });
+
+        $this->dispatch(new DecisionEvaluated($input, $criteria, $decision, $decision->latencyMs()));
+
+        return $decision;
     }
 
     /**
@@ -200,6 +205,13 @@ class JevManager implements JevContract
         $ttl = (int) $this->app['config']->get('jev.cache.ttl', 3600);
 
         return Cache::store($store)->remember($key, $ttl, $callback);
+    }
+
+    protected function dispatch(object $event): void
+    {
+        if (isset($this->app['events'])) {
+            $this->app['events']->dispatch($event);
+        }
     }
 
     /**
