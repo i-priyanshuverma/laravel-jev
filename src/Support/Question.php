@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Priyanshu\LaravelJev\Support;
 
+use Priyanshu\LaravelJev\Enums\QuestionType;
+
 class Question
 {
     public function __construct(
-        protected string $type,
+        protected QuestionType|string $type,
         protected string $instructions,
         protected array $payload = []
     ) {}
@@ -19,7 +21,7 @@ class Question
      */
     public static function noul(string $instructions, array $criteria = []): self
     {
-        return new self('noul', $instructions, [
+        return new self(QuestionType::Noul, $instructions, [
             'criteria' => $criteria,
         ]);
     }
@@ -40,7 +42,7 @@ class Question
             }
         }
 
-        return new self('choice', $instructions, [
+        return new self(QuestionType::Choice, $instructions, [
             'options' => $normalized,
         ]);
     }
@@ -52,14 +54,19 @@ class Question
      */
     public static function score(string $instructions, array $levels): self
     {
-        return new self('score', $instructions, [
+        return new self(QuestionType::Score, $instructions, [
             'levels' => array_values($levels),
         ]);
     }
 
     public function getType(): string
     {
-        return $this->type;
+        return $this->type instanceof QuestionType ? $this->type->value : $this->type;
+    }
+
+    public function getQuestionType(): ?QuestionType
+    {
+        return $this->type instanceof QuestionType ? $this->type : QuestionType::tryFrom($this->type);
     }
 
     public function getInstructions(): string
@@ -70,7 +77,7 @@ class Question
     public function toArray(): array
     {
         return array_merge([
-            'type' => $this->type,
+            'type' => $this->getType(),
             'instructions' => $this->instructions,
         ], $this->payload);
     }
