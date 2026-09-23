@@ -20,6 +20,8 @@ class JevServiceProvider extends ServiceProvider
         $this->app->singleton('jev', function ($app) {
             return new JevManager($app);
         });
+
+        $this->app->alias('jev', \Priyanshu\LaravelJev\Contracts\Jev::class);
     }
 
     /**

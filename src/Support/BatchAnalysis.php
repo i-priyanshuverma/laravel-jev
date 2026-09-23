@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Priyanshu\LaravelJev\Support;
 
-use Priyanshu\LaravelJev\JevManager;
+use Priyanshu\LaravelJev\Contracts\Jev as JevContract;
 
 class BatchAnalysis
 {
@@ -12,7 +12,7 @@ class BatchAnalysis
     protected array $questions = [];
 
     public function __construct(
-        protected JevManager $manager,
+        protected JevContract $manager,
         protected string $state
     ) {}
 

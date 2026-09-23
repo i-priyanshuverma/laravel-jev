@@ -4,18 +4,21 @@ declare(strict_types=1);
 
 namespace Priyanshu\LaravelJev;
 
+use Closure;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Cache;
 use Priyanshu\LaravelJev\Client\JevClient;
+use Priyanshu\LaravelJev\Contracts\ClientInterface;
+use Priyanshu\LaravelJev\Contracts\Jev as JevContract;
 use Priyanshu\LaravelJev\Support\BatchAnalysis;
 use Priyanshu\LaravelJev\Support\BatchResult;
 use Priyanshu\LaravelJev\Support\JevDecision;
 use Priyanshu\LaravelJev\Support\Question;
 use Priyanshu\LaravelJev\Testing\JevFake;
 
-class JevManager
+class JevManager implements JevContract
 {
-    protected ?JevClient $client = null;
+    protected ?ClientInterface $client = null;
     protected ?JevFake $fake = null;
 
     public function __construct(
@@ -28,6 +31,9 @@ class JevManager
     public function fake(array $expectations = []): JevFake
     {
         $this->fake = new JevFake($expectations);
+
+        $this->app->instance('jev', $this->fake);
+        $this->app->instance(JevContract::class, $this->fake);
 
         return $this->fake;
     }
@@ -74,19 +80,14 @@ class JevManager
         }
 
         $cacheKey = $this->cacheKey('choose', $input, json_encode($options));
-        if ($cached = $this->getFromCache($cacheKey)) {
-            return (string) $cached;
-        }
 
-        $result = $this->getClient()->ask($input, [
-            'selection' => Question::choice('Select the best matching option:', $options),
-        ]);
+        return (string) $this->remember($cacheKey, function () use ($input, $options) {
+            $result = $this->getClient()->ask($input, [
+                'selection' => Question::choice('Select the best matching option:', $options),
+            ]);
 
-        $choice = $result->choice('selection')['choice'];
-
-        $this->putInCache($cacheKey, $choice);
-
-        return $choice;
+            return $result->choice('selection')['choice'];
+        });
     }
 
     /**
@@ -101,19 +102,14 @@ class JevManager
         }
 
         $cacheKey = $this->cacheKey('score', $input, $criteria . json_encode($levels));
-        if ($cached = $this->getFromCache($cacheKey)) {
-            return (float) $cached;
-        }
 
-        $result = $this->getClient()->ask($input, [
-            'rating' => Question::score("Rate {$criteria}:", $levels),
-        ]);
+        return (float) $this->remember($cacheKey, function () use ($input, $criteria, $levels) {
+            $result = $this->getClient()->ask($input, [
+                'rating' => Question::score("Rate {$criteria}:", $levels),
+            ]);
 
-        $score = $result->score('rating')['score'];
-
-        $this->putInCache($cacheKey, $score);
-
-        return $score;
+            return $result->score('rating')['score'];
+        });
     }
 
     /**
@@ -126,28 +122,14 @@ class JevManager
         }
 
         $cacheKey = $this->cacheKey('eval', $input, $criteria);
-        if ($cached = $this->getFromCache($cacheKey)) {
-            return $cached;
-        }
 
-        $result = $this->getClient()->ask($input, [
-            'noul' => Question::noul("Is this {$criteria}?"),
-        ]);
+        return $this->remember($cacheKey, function () use ($input, $criteria) {
+            $result = $this->getClient()->ask($input, [
+                'noul' => Question::noul("Is this {$criteria}?"),
+            ]);
 
-        $noul = $result->noul('noul');
-
-        $decision = new JevDecision(
-            value: $noul['isTrue'],
-            confidence: $noul['confidence'],
-            type: 'noul',
-            probabilities: ['true' => $noul['probability'], 'false' => 1.0 - $noul['probability']],
-            latencyMs: $result->latencyMs,
-            raw: $result->get('noul')
-        );
-
-        $this->putInCache($cacheKey, $decision);
-
-        return $decision;
+            return JevDecision::fromAnswer($result->get('noul'), $result->latencyMs);
+        });
     }
 
     /**
@@ -172,7 +154,7 @@ class JevManager
         return new BatchResult($result, $this->defaultThreshold(), $result->latencyMs);
     }
 
-    public function getClient(): JevClient
+    public function getClient(): ClientInterface
     {
         if ($this->client === null) {
             $apiKey = (string) $this->app['config']->get('jev.api_key', env('JEV_API_KEY', ''));
@@ -191,7 +173,7 @@ class JevManager
         return $this->client;
     }
 
-    public function setClient(JevClient $client): self
+    public function setClient(ClientInterface $client): self
     {
         $this->client = $client;
 
@@ -208,27 +190,16 @@ class JevManager
         return 'jev:' . md5("{$type}:{$input}:{$extra}");
     }
 
-    protected function getFromCache(string $key): mixed
+    protected function remember(string $key, Closure $callback): mixed
     {
         if (! $this->app['config']->get('jev.cache.enabled', false)) {
-            return null;
-        }
-
-        $store = $this->app['config']->get('jev.cache.store');
-
-        return Cache::store($store)->get($key);
-    }
-
-    protected function putInCache(string $key, mixed $value): void
-    {
-        if (! $this->app['config']->get('jev.cache.enabled', false)) {
-            return;
+            return $callback();
         }
 
         $store = $this->app['config']->get('jev.cache.store');
         $ttl = (int) $this->app['config']->get('jev.cache.ttl', 3600);
 
-        Cache::store($store)->put($key, $value, $ttl);
+        return Cache::store($store)->remember($key, $ttl, $callback);
     }
 
     /**

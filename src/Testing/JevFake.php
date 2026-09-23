@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace Priyanshu\LaravelJev\Testing;
 
 use PHPUnit\Framework\Assert as PHPUnit;
+use Priyanshu\LaravelJev\Contracts\Jev as JevContract;
 use Priyanshu\LaravelJev\Support\BatchAnalysis;
 use Priyanshu\LaravelJev\Support\BatchResult;
 use Priyanshu\LaravelJev\Support\JevDecision;
 use Priyanshu\LaravelJev\Support\JevResult;
 
-class JevFake
+class JevFake implements JevContract
 {
     /** @var array<string, mixed> */
     protected array $expectations = [];
@@ -32,7 +33,7 @@ class JevFake
         $this->expectations = $expectations;
     }
 
-    public function is(string $input, string $criteria, float $threshold = 0.80): bool
+    public function is(string $input, string $criteria, ?float $threshold = null): bool
     {
         $key = "is:{$criteria}";
         $resolved = $this->resolveValue($key, true);
@@ -46,7 +47,7 @@ class JevFake
         return (bool) $resolved;
     }
 
-    public function isNot(string $input, string $criteria, float $threshold = 0.80): bool
+    public function isNot(string $input, string $criteria, ?float $threshold = null): bool
     {
         return ! $this->is($input, $criteria, $threshold);
     }
@@ -79,7 +80,7 @@ class JevFake
         return $resolved;
     }
 
-    public function evaluate(string $input, string $criteria, float $threshold = 0.80): JevDecision
+    public function evaluate(string $input, string $criteria, ?float $threshold = null): JevDecision
     {
         $isTrue = $this->is($input, $criteria, $threshold);
 
@@ -90,6 +91,11 @@ class JevFake
             probabilities: ['true' => $isTrue ? 0.95 : 0.05, 'false' => $isTrue ? 0.05 : 0.95],
             latencyMs: 1
         );
+    }
+
+    public function analyze(string $input): BatchAnalysis
+    {
+        return new BatchAnalysis($this, $input);
     }
 
     public function runBatch(string $state, array $questions): BatchResult
