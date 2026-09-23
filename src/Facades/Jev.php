@@ -17,6 +17,7 @@ use Priyanshu\LaravelJev\Testing\JevFake;
  * @method static float score(string $input, string $criteria, array $levels = ['low', 'medium', 'high'])
  * @method static JevDecision evaluate(string $input, string $criteria, ?float $threshold = null)
  * @method static BatchAnalysis analyze(string $input)
+ * @method static \Priyanshu\LaravelJev\Support\BatchResult runBatch(string $state, array $questions)
  * @method static JevFake fake(array $expectations = [])
  * @method static bool isFaking()
  * @method static void assertChecked(string $criteria, ?callable $callback = null)
@@ -24,6 +25,7 @@ use Priyanshu\LaravelJev\Testing\JevFake;
  * @method static void assertChosen(string $option)
  * @method static void assertNothingClassified()
  *
+ * @see \Priyanshu\LaravelJev\Contracts\Jev
  * @see \Priyanshu\LaravelJev\JevManager
  */
 class Jev extends Facade
